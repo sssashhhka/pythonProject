@@ -98,7 +98,8 @@ class SettingsWindow(ui.CTkToplevel):
 class LoginWindow(ui.CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.geometry("400x600")
+        self.geometry("350x250")
+        self.resizable(False, False)
         self.title("Login")
 
         # Widgets
@@ -106,16 +107,21 @@ class LoginWindow(ui.CTkToplevel):
         self.entries_frame = ui.CTkFrame(self, corner_radius=0)
         self.username = ui.CTkEntry(self.entries_frame, placeholder_text="Username", corner_radius=2, border_width=0)
         self.password = ui.CTkEntry(self.entries_frame, placeholder_text="Password", corner_radius=2, border_width=0)
+        self.exit_b = ui.CTkButton(self, text="Exit", command=Tools.exit)
+        self.login_b = ui.CTkButton(self, text="Log in")
 
         # Widgets placement
-        self.label.grid(row=0, column=0, padx=10, pady=10, sticky="new")
-        self.entries_frame.grid(row=1, column=0, padx=0, pady=0, sticky="new")
+        self.label.grid(row=0, column=0, padx=10, pady=10, sticky="new", columnspan=2)
+        self.entries_frame.grid(row=1, column=0, padx=0, pady=(10, 0), sticky="new", columnspan=2)
         self.username.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="new")
         self.password.grid(row=1, column=0, padx=10, pady=(5, 10), sticky="new")
+        self.exit_b.grid(row=2, column=0, padx=10, pady=10, sticky="sw")
+        self.login_b.grid(row=2, column=1, padx=10, pady=10, sticky="se")
 
         # Grid configure
         self.columnconfigure(0, weight=1)
         self.entries_frame.columnconfigure(0, weight=1)
+        self.rowconfigure(2, weight=1)
 
 
 if __name__ == "__main__":
@@ -124,4 +130,5 @@ if __name__ == "__main__":
     app = MainWindow()
     if app.account_username == "No login":
         login_window = LoginWindow()
+        app.iconify()
     app.mainloop()
