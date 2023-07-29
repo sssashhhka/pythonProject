@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from utilities.log import Log
+from src.logger import Log
 
 version: str = "DB_handler v.1.2 stable"
 

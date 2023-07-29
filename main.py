@@ -1,7 +1,7 @@
 import time
-import utilities.log as log
-import utilities.db_handler as db
-from libs import customtkinter as ui
+import src.logger as log
+import src.db_handler as db
+from src import customtkinter as ui
 
 version: str = "Main v.0.9 alpha"
 
@@ -13,7 +13,7 @@ class Tools:
     @staticmethod
     def exit():
         time.sleep(0.1)
-        exit()
+        quit()
 
 
 class MainWindow(ui.CTk):
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     logg = log.Log()
     dbb = db.Database("users")
     app = MainWindow()
-    if app.account_username == "No login":
+    if app.account_username != "No login":
         login_window = LoginWindow()
         app.iconify()
     app.mainloop()
