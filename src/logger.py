@@ -30,13 +30,13 @@ class Log:
         print(f"{self.sys_info} {info}")
 
     def write(self, text: str):
-        if os.path.exists("../log/log.txt"):
-            with open("../log/log.txt", "a+") as self.file:
+        if os.path.exists("log/log.txt"):
+            with open("log/log.txt", "a+") as self.file:
                 self.file.write(f"{text}\n")
         else:
             try:
-                os.mkdir("../log")
+                os.mkdir("log")
             except FileExistsError:
                 pass
-            with open("../log/log.txt", "w+") as self.file:
+            with open("log/log.txt", "w+") as self.file:
                 self.file.write(f"{text}\n")
