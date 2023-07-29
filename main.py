@@ -1,6 +1,6 @@
 import time
-import src.logger as log
-import src.db_handler as db
+from src import logger
+from src import db_handler as db
 from src import customtkinter as ui
 
 version: str = "Main v.0.9 alpha"
@@ -19,7 +19,7 @@ class Tools:
 class MainWindow(ui.CTk):
     def __init__(self):
         super().__init__()
-        logg.console_out(version, "Version")
+        log(version, "Version")
         self.geometry("700x400+500+200")
         self.minsize(700, 400)
         self.title("Слышу ZOV - ебать Азов")
@@ -45,7 +45,8 @@ class MainWindow(ui.CTk):
         self.about_b = ui.CTkButton(self.top_bar, text="About", width=50, corner_radius=0,
                                     fg_color="transparent", text_color=btn_text_color,
                                     hover_color=btn_hover_color)
-        self.version = ui.CTkLabel(self.bottom_bar, text=f"{version};   {log.version};   {db.version}", text_color="#7a7a7a")
+        self.version = ui.CTkLabel(self.bottom_bar, text=f"{version};   {logger.version};   {db.version}",
+                                   text_color="#7a7a7a")
         self.warning = ui.CTkLabel(self.bottom_bar, text="You must to be logged in before proceeding", anchor="center")
 
         # Widgets placement
@@ -108,7 +109,7 @@ class LoginWindow(ui.CTkToplevel):
         self.username = ui.CTkEntry(self.entries_frame, placeholder_text="Username", corner_radius=2, border_width=0)
         self.password = ui.CTkEntry(self.entries_frame, placeholder_text="Password", corner_radius=2, border_width=0)
         self.exit_b = ui.CTkButton(self, text="Exit", command=Tools.exit)
-        self.login_b = ui.CTkButton(self, text="Log in")
+        self.login_b = ui.CTkButton(self, text="Log in", command=self.check_out)
 
         # Widgets placement
         self.label.grid(row=0, column=0, padx=10, pady=10, sticky="new", columnspan=2)
@@ -123,12 +124,23 @@ class LoginWindow(ui.CTkToplevel):
         self.entries_frame.columnconfigure(0, weight=1)
         self.rowconfigure(2, weight=1)
 
+    def check_out(self):
+        username = self.username.get()
+        password = self.password.get()
+        try:
+            if db.db.get(table_name="users", column="pswd", where=("user", username))[0][0] == password:
+                login_window.withdraw()
+                app.deiconify()
+            else:
+                log("Incorrect data has been entered", "Warning")
+        except IndexError:
+            log("Incorrect data has been entered", "Warning")
+
 
 if __name__ == "__main__":
-    logg = log.Log()
-    dbb = db.Database("users")
+    log = logger.log
     app = MainWindow()
-    if app.account_username != "No login":
+    if app.account_username == "No login":
         login_window = LoginWindow()
         app.iconify()
     app.mainloop()
