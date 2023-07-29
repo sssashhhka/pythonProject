@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from src.logger import Log
+from src import logger
 
 version: str = "DB_handler v.1.2 stable"
 
@@ -9,13 +9,13 @@ class Database:
     def __init__(self, db_name: str):
         self.database = None
         self.db_cursor = None
-        self.db_path: str = f"../database/{db_name}.sqlite"
-        self.log = Log()
+        self.db_path: str = f"database/{db_name}.sqlite"
+        self.log = logger.log
 
     @staticmethod
     def db(func):
         def inner(*args, **kwargs):
-            Log.console_out(Log(), f"Connecting to db for [{func.__name__}]", "Info")
+            logger.log(f"Connecting to database for [{func.__name__}]", "Info")
             db.db_open()
             f = func(*args, **kwargs)
             db.db_close()
@@ -23,24 +23,23 @@ class Database:
         return inner
 
     def db_open(self):
-        while True:
+        try:
+            self.database = sqlite3.connect(self.db_path)
+        except sqlite3.OperationalError:
             try:
-                self.database = sqlite3.connect(self.db_path)
-            except sqlite3.OperationalError:
-                try:
-                    os.mkdir("../database")
-                except FileExistsError:
-                    pass
-            else:
-                break
-            finally:
-                self.log.console_out("Connected to database", "Info")
-                self.db_cursor = self.database.cursor()
+                os.mkdir("database")
+            except FileExistsError:
+                pass
+        else:
+            pass
+        finally:
+            self.log("Connected to database", "Info")
+            self.db_cursor = self.database.cursor()
 
     def db_close(self):
         self.database.commit()
         self.db_cursor.close()
-        self.log.console_out("Connection closed", "Info")
+        self.log("Connection closed", "Info")
 
     @db
     def insert(self, *, table_name: str, **values):
@@ -65,9 +64,9 @@ class Database:
         try:
             self.db_cursor.execute(f"INSERT INTO '{table_name}' ({columns_out}) VALUES ({values_out})")
         except sqlite3.OperationalError:
-            self.log.console_out("Invalid arguments!", "Error")
+            self.log("Invalid arguments!", "Error")
         else:
-            self.log.console_out("Values successfully inserted", "Info")
+            self.log("Values successfully inserted", "Info")
 
     @db
     def update(self, *, table_name: str, where: tuple[str, str], **values):
@@ -75,7 +74,7 @@ class Database:
         try:
             rowid = data.fetchone()[0]
         except TypeError:
-            self.log.console_out("Invalid filter", "Error")
+            self.log("Invalid filter", "Error")
         else:
             for column, value in values.items():
                 self.db_cursor.execute(f"UPDATE '{table_name}' SET {column} = '{value}' WHERE rowid = '{rowid}'")
@@ -87,14 +86,18 @@ class Database:
 
     @db
     def get(self, *, table_name: str, column: str, where: tuple[str, str] = ("None", "None")) -> list:
-        if where[0] == "None" or where[1] == "None":
-            result = self.db_cursor.execute(f"SELECT {column} FROM {table_name}")
-            result = result.fetchall()
-            return result
-        else:
-            result = self.db_cursor.execute(f"SELECT {column} FROM {table_name} WHERE {where[0]} = '{where[1]}'")
-            result = result.fetchall()
-            return result
+        try:
+            if where[0] == "None" or where[1] == "None":
+                result = self.db_cursor.execute(f"SELECT {column} FROM {table_name}")
+                result = result.fetchall()
+
+                return result
+            else:
+                result = self.db_cursor.execute(f"SELECT {column} FROM {table_name} WHERE {where[0]} = '{where[1]}'")
+                result = result.fetchall()
+                return result
+        except sqlite3.OperationalError:
+            self.log("Invalid arguments!", "Error")
 
 
 db = Database("users")
