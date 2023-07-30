@@ -1,6 +1,6 @@
 import time
 import random
-import sha3
+from src import sha3
 
 
 def get_public_key() -> str:
