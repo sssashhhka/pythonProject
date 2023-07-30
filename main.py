@@ -2,6 +2,8 @@ import time
 from src import logger
 from src import db_handler as db
 from src import customtkinter as ui
+from src import key
+from src import sha3
 
 version: str = "Main v.0.9 alpha"
 
@@ -15,11 +17,29 @@ class Tools:
         time.sleep(0.1)
         quit()
 
+    @staticmethod
+    def user_init():
+        try:
+            with open("public_key.bin", "rb") as pk:
+                public_key: str = pk.read().decode("utf-8")
+            user: str = db.db.get(table_name="users",
+                                  column="user",
+                                  where=("public_key",
+                                         public_key))[0][0]
+        except IndexError:
+            log("Please re-log in", "Warning")
+            return "No login"
+        except FileNotFoundError:
+            log("Log in first", "Warning")
+            return "No login"
+        else:
+            log("Successfully logged in")
+            return user
+
 
 class MainWindow(ui.CTk):
     def __init__(self):
         super().__init__()
-        log(version, "Version")
         self.geometry("700x400+500+200")
         self.minsize(700, 400)
         self.title("Слышу ZOV - ебать Азов")
@@ -28,7 +48,7 @@ class MainWindow(ui.CTk):
         self.hi_font = ui.CTkFont("Segoe UI Variable", 25, "bold")
 
         # Account data
-        self.account_username: str = "No login"
+        self.account_username: str = Tools.user_init()
 
         # Widgets
         self.top_bar = ui.CTkFrame(self, corner_radius=0)
@@ -36,7 +56,7 @@ class MainWindow(ui.CTk):
         self.exit_b = ui.CTkButton(self.top_bar, text="Exit", width=40, command=Tools.exit, corner_radius=0,
                                    fg_color="transparent", text_color=btn_text_color,
                                    hover_color=btn_hover_color)
-        self.user_b = ui.CTkButton(self.top_bar, text=self.account_username, corner_radius=0,
+        self.user_b = ui.CTkButton(self.top_bar, text=self.account_username, width=70, corner_radius=0,
                                    fg_color="transparent", text_color=btn_text_color,
                                    hover_color=btn_hover_color)
         self.settings_b = ui.CTkButton(self.top_bar, text="Settings", width=70, corner_radius=0,
@@ -47,7 +67,7 @@ class MainWindow(ui.CTk):
                                     hover_color=btn_hover_color)
         self.version = ui.CTkLabel(self.bottom_bar, text=f"{version};   {logger.version};   {db.version}",
                                    text_color="#7a7a7a")
-        self.warning = ui.CTkLabel(self.bottom_bar, text="You must to be logged in before proceeding", anchor="center")
+        self.warning = ui.CTkLabel(self.bottom_bar, text="No problems", anchor="center")
 
         # Widgets placement
         self.top_bar.grid(row=0, column=0, sticky="new")
@@ -127,8 +147,16 @@ class LoginWindow(ui.CTkToplevel):
     def check_out(self):
         username = self.username.get()
         password = self.password.get()
+        password = sha3.sha3_256(password)
         try:
             if db.db.get(table_name="users", column="pswd", where=("user", username))[0][0] == password:
+                public_key = key.get_public_key().encode("utf-8")
+                with open("public_key.bin", "wb") as pk:
+                    pk.write(public_key)
+                public_key = public_key.decode("utf-8")
+                db.db.update(table_name="users", where=("user", username), public_key=public_key)
+                app.account_username = username
+                app.user_b.configure(text=username)
                 login_window.withdraw()
                 app.deiconify()
             else:
