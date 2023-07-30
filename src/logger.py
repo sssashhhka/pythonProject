@@ -5,7 +5,9 @@ from typing import Literal
 version: str = "Logger v.3.0"
 
 
-def log(info: str, state: Literal["Info", "Warning", "Error", "Version"] = "Info", silent: bool = False):
+def log(info: str,
+        state: Literal["Info", "Warning", "Error", "Version"] = "Info",
+        silent: bool = False) -> None:
     current_time: str = time.strftime("%d:%m:%Y %X")
     output: str = f"[{current_time}] [{state}] {info}\n"
     if silent:
