@@ -2,7 +2,7 @@ import sqlite3
 import os
 from src import logger
 
-version: str = "DB_handler v.1.2 stable"
+version: str = "DB_handler v.1.3 stable"
 
 
 class Database:
@@ -15,8 +15,8 @@ class Database:
     @staticmethod
     def db(func):
         def inner(*args, **kwargs):
-            logger.log(f"Connecting to database for [{func.__name__}]", "Info")
             db.db_open()
+            db.log(f"Connected to database for [{func.__name__}]", "Info")
             f = func(*args, **kwargs)
             db.db_close()
             return f
@@ -33,13 +33,11 @@ class Database:
         else:
             pass
         finally:
-            self.log("Connected to database", "Info")
             self.db_cursor = self.database.cursor()
 
     def db_close(self):
         self.database.commit()
         self.db_cursor.close()
-        self.log("Connection closed", "Info")
 
     @db
     def insert(self, *, table_name: str, **values):
