@@ -1,3 +1,4 @@
+import os
 import time
 from src import logger
 from src import db_handler as db
@@ -167,8 +168,8 @@ class RegWindow(ui.CTkToplevel):
         self.username = ui.CTkEntry(self, placeholder_text="Username", corner_radius=2, border_width=0)
         self.password = ui.CTkEntry(self, placeholder_text="Password", corner_radius=2, border_width=0)
         self.button_frame = ui.CTkFrame(self, corner_radius=0)
-        self.submit_b = ui.CTkButton(self.button_frame, text="Submit", command=self.check, corner_radius=0, fg_color="transparent",
-                                     text_color=btn_text_color, hover_color=btn_hover_color)
+        self.submit_b = ui.CTkButton(self.button_frame, text="Submit", command=self.check, corner_radius=0,
+                                     fg_color="transparent", text_color=btn_text_color, hover_color=btn_hover_color)
         self.exit_b = ui.CTkButton(self.button_frame, text="Exit", command=Tools.std, corner_radius=0, fg_color="transparent",
                                    text_color=btn_text_color, hover_color=btn_hover_color)
 
@@ -234,6 +235,10 @@ class Tools:
 
 
 if __name__ == "__main__":
+    if os.name == "nt":
+        pass
+    else:
+        quit("Windows-only program")
     log = logger.log
     app = MainWindow()
     if app.account_username is None:
